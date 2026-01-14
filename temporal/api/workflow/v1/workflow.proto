@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package temporal.api.workflow.v1;
+
+option go_package = "go.temporal.io/api/workflow/v1;workflow";
+option java_package = "io.temporal.api.workflow.v1";
+option java_multiple_files = true;
+option java_outer_classname = "MessageProto";
+option ruby_package = "Temporalio::Api::Workflow::V1";
+option csharp_namespace = "Temporalio.Api.Workflow.V1";
+
+// Workflow describes a sequence of steps that a Temporal user can durably
+// execute.
+//
+// Note that prior to the introduction of non-SDK-managed Workers, there was no
+// message called "Workflow". Instead, a message called WorkflowExecution
+// describes a specific *execution* of a "Workflow definition". Prior to the
+// introduction of non-SDK-managed Workers, a "Workflow definition" was
+// strictly an client/SDK-specific entity. When the StartWorkflowExecution gRPC
+// API call was made by the client/SDK, the Temporal Service created a record
+// of the "workflow" with a "workflow type" that was simply the name of the
+// WorkflowDefinition struct in the SDK or a simple string if the Workflow code
+// was defined in a different language or location.
+//
+// With the introduction of non-SDK-managed Workers, a Workflow can be defined
+// using the CreateWorkflow gRPC API call. Workflows created in this manner can
+// be configured to use Workers that are managed by WorkerManagers that are not
+// the SDK.
+message Workflow {
+    // Meta contains information used to identify and label the Workflow.
+    temporal.api.worker.v1.WorkflowMeta meta = 1;
+    // Spec contains the definition and configuration for the Workflow.
+    temporal.api.worker.v1.WorkflowSpec spec = 2;
+    // Status contains the latest observed state of a Workflow.
+    temporal.api.worker.v1.WorkflowStatus status = 3;
+}
+
+// WorkflowMeta contains information used to identify and label the Workflow.
+message WorkflowMeta {
+    // Contains information that identify this individual Workflow.
+    temporal.api.worker.v1.WorkflowIdentifier id = 1;
+    // Contains key/value pairs useful for selecting groups of Workflows.
+    map<string,string> labels = 10;
+}
+
+// WorkflowIdentifier contains information used to uniquely identify an
+// individual Workflow.
+//
+// Other objects that need to reference a Workflow will have a field of this
+// message type instead of embedding a full Workflow object.
+message WorkflowIdentifier {
+    // Globally unique identifier for the Workflow.
+    string id = 1;
+    // Namespace within which this Workflow resides.
+    string namespace = 2;
+    // Identifier that is unique within the Namespace.
+    //
+    // Note: this should be equivalent to WorkflowExecution.type.name
+    string key = 3;
+    // The generation of the desired configuration for the Workflow.
+    int64 generation = 4;
+}
+
+// WorkflowSpec describes the desired configuration of a Workflow.
+//
+// WorkflowSpec should be considered immutable. When any field in the
+// WorkflowSpec is changed, its `generation` field is incremented. A Workflow's
+// `spec` field always points to a WorkflowSpec of a specific `generation`,
+// facilitating concurrent changes to a Workflow's desired configuration.
+message WorkflowSpec {
+    // Points to the specific TaskQueue that Tasks for the Workflow and its
+    // Activities will be published to.
+    temporal.api.taskqueue.v1.TaskQueueIdentifier task_queue = 1;
+    // Contains instructions informing what Temporal should do when receiving a
+    // signal to execute a Workflow but there are no Workers subscribed to the
+    // Workflow's configured TaskQueue.
+    temporal.api.workflow.v1.OnNoWorkers on_no_workers = 2;
+    // Identity that created the WorkflowSpec.
+    string created_by = 11;
+    // Timestamp when WorkflowSpec was created.
+    google.protobuf.Timestamp created_time = 12;
+    // Identity that last modified the WorkflowSpec.
+    string modified_by = 13;
+    // Timestamp when WorkflowSpec was last modified.
+    google.protobuf.Timestamp modified_time = 14;
+    // The monotonically-incrementing generation of the WorkflowSpec. Any change
+    // to any field in the WorkflowSpec will cause this field to be incremented.
+    int64 generation = 15;
+}
+
+// OnNoWorkers contains instructions for how the Temporal Service should handle
+// the case where StartWorkflowExecution is called with a Workflow associated
+// to a TaskQueue that does not have any subscribed Workers.
+message OnNoWorkers {
+    // Create new Workers using this WorkerTemplate.
+    temporal.api.workertemplate.v1.WorkerTemplateIdentifier worker_template = 1;
+    // TODO(jaypipes): Add the scaling/backoff/wait fields as necessary here...
+}
+
+// WorkflowStatus describes the latest observed state of a Workflow.
+message WorkflowStatus {
+    // TODO(jaypipes): Add fields that describe the overall workflow
+    // definition's status (not the WorkflowExecution's status)
+    // Timestamp when WorkflowStatus struct was constructed -- i.e. when the
+    // last observed state of the worker was read.
+    google.protobuf.Timestamp last_observed_time = 14;
+}

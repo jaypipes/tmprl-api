@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package temporal.api.workertemplate.v1;
+
+option go_package = "go.temporal.io/api/workertemplate/v1;workertemplate";
+option java_package = "io.temporal.api.workertemplate.v1";
+option java_multiple_files = true;
+option java_outer_classname = "MessageProto";
+option ruby_package = "Temporalio::Api::WorkerTemplate::V1";
+option csharp_namespace = "Temporalio.Api.WorkerTemplate.V1";
+
+import "google/protobuf/timestamp.proto";
+import "temporal/api/taskqueue/v1/message.proto";
+
+// WorkerTemplate describes a template/blueprint for a WorkerManager to
+// instantiate Worker instances.
+//
+// Temporal admins can create WorkerTemplates in a Namespace and configure
+// TaskQueues via a TaskQueueSpec to utilize a WorkerTemplate to automatically
+// start a Worker when certain signals are received by the Temporal Service.
+message WorkerTemplate {
+    // Meta contains information used to identify and label the WorkerTemplate
+    // and Workers created from the WorkerTemplate.
+    temporal.api.workertemplate.v1.WorkerTemplateMeta meta = 1;
+    // Spec contains the definition and configuration for Workers created using
+    // this WorkerTemplate.
+    temporal.api.workertemplate.v1.WorkerTemplateSpec spec = 2;
+    // Status contains the latest observed state of a WorkerTemplate.
+    temporal.api.workertemplate.v1.WorkerTemplateStatus status = 3;
+}
+
+// WorkerTemplateMeta contains information used to identify and label the
+// WorkerTemplate and Workers created by this WorkerTemplate.
+message WorkerTemplateMeta {
+    // Contains the identifying fields for the WorkerTemplate.
+    temporal.api.workertemplate.v1.WorkerTemplateIdentifier id = 1;
+    // Indicates how the `meta.name` field will be generated for the Worker
+    // created from this WorkerTemplate.
+    // Contains labels that will be placed in the `meta.labels` field of the
+    // Worker created from this WorkerTemplate.
+    map<string,string> labels = 10;
+}
+
+// WorkerTemplateIdentifier contains information used to uniquely identify an
+// individual WorkerTemplate.
+//
+// Other objects that need to reference a WorkerTemplate will have a field of
+// this message type instead of embedding a full WorkerTemplate object.
+message WorkerTemplateIdentifier {
+    // Globally unique identifier for the WorkerTemplate.
+    string id = 1;
+    // Namespace within which this WorkerTemplate resides.
+    string namespace = 2;
+    // Identifier for the WorkerTemplate that is unique within the Namespace.
+    string key = 3;
+    // The generation of the desired configuration for the WorkerTemplate.
+    int64 generation = 4;
+}
+
+// WorkerTemplateSpec describes the desired configuration of a Worker created
+// using this WorkerTemplate.
+//
+// WorkerTemplateSpec should be considered immutable. When any field in the
+// WorkerTemplateSpec is changed, its `generation` field is incremented. A
+// WorkerTemplate's `spec` field always points to a WorkerTemplateSpec of a
+// specific `generation`, facilitating concurrent changes to a WorkerTemplate's
+// desired configuration.
+message WorkerTemplateSpec {
+    // Points to a SubscriptionConfig that can be used when
+    // starting/configuring Workers created from this WorkerTemplate.
+    temporal.api.workertemplate.v1.SubscriptionConfig subscription = 1;
+    // Points to a ComputeConfig that contains information helpful in
+    // performing lifecycle management operations on the Worker created from
+    // this WorkerTemplate.
+    temporal.api.workertemplate.v1.ComputeConfig compute = 2;
+    // Identity that created the WorkerTemplateSpec.
+    string created_by = 11;
+    // Timestamp when WorkerTemplateSpec was created.
+    google.protobuf.Timestamp created_time = 12;
+    // Identity that last modified the WorkerTemplateSpec.
+    string modified_by = 13;
+    // Timestamp when WorkerTemplateSpec was last modified.
+    google.protobuf.Timestamp modified_time = 14;
+    // The monotonically-incrementing generation of the WorkerTemplateSpec. Any
+    // change to any field in the WorkerTemplateSpec will cause this field to
+    // be incremented.
+    int64 generation = 15;
+}
+
+// SubscriptionConfig details what a Worker created from the
+// WorkerTemplate will subscribe to.
+message SubscriptionConfig {
+    // Points to the specific TaskQueue that a Worker created from this
+    // WorkerTemplate will subscribe to when starting up.
+    temporal.api.taskqueue.v1.TaskQueue task_queue = 1;
+    // TODO: Add ability for a WorkerTemplate to dynamically determine the
+    // TaskQueue to subscribe to from, say, Lambda Function parameters or
+    // environment variables.
+}
+
+// WorkerTemplateStatus describes the latest observed state of a
+// WorkerTemplate.
+message WorkerTemplateStatus {
+    // The number of Workers created from the WorkerTemplate.
+    uint64 workers_created_count = 1;
+    // Timestamp of the last time a Worker was created from the WorkerTemplate.
+    google.protobuf.Timestamp last_worker_created_time = 2;
+    // Timestamp when WorkerTemplateStatus struct was constructed -- i.e. when the last
+    // observed state of the WorkerTemplate  was read.
+    google.protobuf.Timestamp last_observed_time = 15;
+}

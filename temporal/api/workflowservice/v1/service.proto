@@ -87,6 +87,74 @@ service WorkflowService {
     rpc DeprecateNamespace (DeprecateNamespaceRequest) returns (DeprecateNamespaceResponse) {
     }
 
+    // DescribeWorkerTemplate returns desired configuration for the latest
+    // generation of a worker template.
+    rpc DescribeWorkerTemplate (DescribeWorkerTemplateRequest) returns (DescribeWorkerTemplateResponse) {
+        option (google.api.http) = {
+            get: "/namespaces/{namespace}/workertemplates/{workertemplate_id}"
+            additional_bindings {
+                get: "/api/v1/namespaces/{namespace}/workertemplates/{workertemplate_id}"
+            }
+        };
+    }
+
+    // DescribeWorkerTemplateGeneration returns the definition/configuration
+    // for a worker template at a specific generation.
+    rpc DescribeWorkerTemplateGeneration (DescribeWorkerTemplateGenerationRequest) returns (DescribeWorkerTemplateResponse) {
+        option (google.api.http) = {
+            get: "/namespaces/{namespace}/workertemplates/{workertemplate_id}/{generation}"
+            additional_bindings {
+                get: "/api/v1/namespaces/{namespace}/workertemplates/{workertemplate_id}/{generation}"
+            }
+        };
+    }
+
+    // ListWorkerTemplates returns the information and configuration for worker
+    // templates.
+    rpc ListWorkerTemplates (ListWorkerTemplatesRequest) returns (ListWorkerTemplatesResponse) {
+        option (google.api.http) = {
+            get: "/namespaces/{namespace]}/workertemplates"
+            additional_bindings {
+                get: "/api/v1/namespaces/{namespace}/workertemplates"
+            }
+        };
+    }
+
+    // CreateWorkerTemplate defines a new worker template.
+    //
+    // Returns `WorkerTemplateAlreadyExists`, if a workertemplate with the same
+    // ID already exists.
+    rpc CreateWorkerTemplate (CreateWorkerTemplateRequest) returns (CreateWorkerTemplateResponse) {
+        option (google.api.http) = {
+            post: "/namespaces/{namespace}/workertemplates/{workertemplate_id}"
+            body: "*"
+            additional_bindings {
+                post: "/api/v1/namespaces/{namespace}/workertemplates/{workertemplate_id}"
+                body: "*"
+            }
+        };
+    }
+
+    // UpdateWorkerTemplate updates the definition/configuration of a worker
+    // template.
+    //
+    // Changes to the worker template's configuration result in an increment of
+    // the WorkerTemplate.spec.generation field, allowing changes to a
+    // workertemplate's configuration to be gracefully rolled out.
+    //
+    // Returns `WorkerTemplateNotFound`, if a worker template with the ID does
+    // not exist.
+    rpc UpdateWorkerTemplate (UpdateWorkerTemplateRequest) returns (UpdateWorkerTemplateResponse) {
+        option (google.api.http) = {
+            put: "/namespaces/{namespace}/workertemplates/{workertemplate_id}"
+            body: "*"
+            additional_bindings {
+                put: "/api/v1/namespaces/{namespace}/workertemplates/{workertemplate_id}"
+                body: "*"
+            }
+        };
+    }
+
     // StartWorkflowExecution starts a new workflow execution.
     //
     // It will create the execution with a `WORKFLOW_EXECUTION_STARTED` event in its history and

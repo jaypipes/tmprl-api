@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package temporal.api.workertemplate.v1;
+
+option go_package = "go.temporal.io/api/workertemplate/v1;workertemplate";
+option java_package = "io.temporal.api.workertemplate.v1";
+option java_multiple_files = true;
+option java_outer_classname = "MessageProto";
+option ruby_package = "Temporalio::Api::WorkerTemplate::V1";
+option csharp_namespace = "Temporalio.Api.WorkerTemplate.V1";
+
+import "temporal/api/enums/v1/compute.proto";
+import "temporal/api/common/v1/message.proto";
+
+// ComputeConfig describes how compute-related resources like a Worker are
+// configured for lifecycle management operations.
+//
+// Workers can be deployed on different underlying execution platforms (e.g.
+// VMs living in EC2 or GCE, containers running on ECS, ECS/Fargate, EKS or
+// GKE, or serverless environments like AWS Lambda or Google Cloud Run.
+//
+// ComputeConfig stores the information necessary for the Temporal Service to
+// perform certain lifecycle management operations on some Workers. For
+// example, if a Worker will be started within an AWS Lambda Function, the
+// Temporal Server must know the Lambda Function URL and, if the Lambda
+// Function's auth type is not `NONE`, the Lambda Execution Role ARN that will
+// need to be assumed in order to invoke the Lambda Function that starts the
+// Worker.
+message ComputeConfig {
+    // The provider of compute services for the Worker configured with this
+    // ComputeConfig.
+    temporal.api.enums.v1.ComputeProvider provider = 1;
+    // Contains provider-specific configuration details, containing potential
+    // secret information, which is why this is a Payload type.
+    temporal.api.common.v1.Payload provider_detail = 2;
+}
+
+// ComputeConfigAWSLambda stores configuration information for Workers that use
+// the AWS Lambda serverless compute platform.
+//
+// Workers that use AWS Lambda have their lifecycle managed by the Temporal
+// Server. When a Worker is configured with the AWS_LAMBDA compute provider,
+// the Temporal Server will invoke an AWS Lambda Function via its Function URL.
+// This will start the Worker that is housed within that AWS Lambda Function and
+// the Worker will begin listening to Tasks on the Worker's configured
+// TaskQueue.
+message ComputeConfigAWSLambda {
+    // AWS region to use when calling AWS APIs. If empty, the AWS client loader
+    // will default the region to the value of the AWS_REGION environs
+    // variable, or if not present, a local AWS configuration file's aws_region
+    // value.
+    string region = 1;
+    // What is the trigger that will invoke the serverless function that runs
+    // the Worker code?
+    oneof invoke {
+        // The URL that will cause the AWS Lambda Function containing the
+        // Worker process to be invoked.
+        string url = 5;
+    }
+    // Optional AWS IAM Role ARN that will need to be assumed by the Temporal
+    // Server in order to call the Lambda Function URL if the Lambda Function's
+    // Auth type is not `NONE`.
+    string iam_role = 10;
+}
+
+// ComputeConfigGoogleCloudRun stores configuration information for Workers
+// that use the Google Cloud Run serverless compute platform.
+//
+// Workers that use Google Cloud Run have their lifecycle managed by the
+// Temporal Server. When a Worker is configured with the GOOGLE_CLOUD_RUN
+// compute provider, the Temporal Server will invoke a Google Cloud Run
+// container image or function. This will start the Worker that is housed
+// within that container image or function and the Worker will begin listening
+// to Tasks on the Worker's configured TaskQueue.
+message ComputeConfigGoogleCloudRun{
+    // Google Cloud region to use when calling Google Cloud APIs. If empty, the
+    // Google client loader will default the region to the value of the
+    // GCLOUD_REGION environs variable, or if not present, a local gcloud
+    // configuration file's gcloud_region value.
+    string region = 1;
+    // What is the trigger that will invoke the serverless function that runs
+    // the Worker code?
+    oneof invoke {
+        // The URL that will invoke the Google Cloud Run container or function
+        // containing the Worker process.
+        //
+        // Use this when your Google Cloud Run container image or function uses
+        // an HTTP trigger mechanism.
+        string url = 5;
+        // The configuration of the Google Eventarc trigger that will invoke
+        // the Google Cloud Run container or function container the Worker
+        // process.
+        temporal.api.compute.v1.GoogleEventarcTrigger eventarc = 6;
+    }
+    // Optional Google Cloud IAM Role identifier that will need to be assumed
+    // by the Temporal Server in order to invoke the Cloud Run container or
+    // function if the Cloud Run service authentication is not `Allow public
+    // access`.
+    string iam_role = 10;
+}
+
+// GoogleCloudRunEventarcTrigger contains information used by a WorkerManager
+// when invoking a Google Cloud Run container image or function that uses
+// Google Eventarc Triggers.
+message GoogleCloudRunEventarcTrigger {
+    // The location to find the Eventarc trigger, e.g.
+    // "google_cloud_run_v2_service.default.location"
+    string location = 1;
+    // The unique name of the Eventarc trigger within the location, e.g.
+    // "trigger-order-processing-temporal-worker-start"
+    string name = 2;
+}
+
+// ComputeConfigKnative stores configuration information for Workers that use
+// the Knative serverless compute platform.
+//
+// Workers that use Knative have their lifecycle managed by the Temporal
+// Server. When a Worker is configured with the KNATIVE compute provider, the
+// Temporal Server will invoke a Knative function via its configured URL. This
+// will start a Worker that is housed within a Knative function running in a
+// Kubernetes cluster.
+message ComputeConfigKnative {
+    // What is the trigger that will invoke the serverless function that runs
+    // the Worker code?
+    oneof invoke {
+        // The URL that will cause the Knative Function containing the Worker
+        // process to be invoked.
+        string url = 5;
+    }
+}
+

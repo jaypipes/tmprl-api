@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package temporal.api.enums.v1;
+
+option go_package = "go.temporal.io/api/enums/v1;enums";
+option java_package = "io.temporal.api.enums.v1";
+option java_multiple_files = true;
+option java_outer_classname = "DeploymentProto";
+option ruby_package = "Temporalio::Api::Enums::V1";
+option csharp_namespace = "Temporalio.Api.Enums.V1";
+
+// A ComputeProvider provides services for executing code. The service may be
+// provided on top of baremetal hosts, virtual machines, containers, or a
+// serverless function runtime.
+enum ComputeProvider {
+    // The default compute provider is unknown.
+    COMPUTE_PROVIDER_UNKNOWN = 0;
+
+    COMPUTE_PROVIDER_AWS_LAMBDA = 10;
+    COMPUTE_PROVIDER_GOOGLE_CLOUD_RUN = 20;
+    COMPUTE_PROVIDER_KNATIVE = 60;
+}

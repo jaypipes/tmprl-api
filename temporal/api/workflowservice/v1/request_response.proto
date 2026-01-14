@@ -126,6 +126,85 @@ message DeprecateNamespaceRequest {
 message DeprecateNamespaceResponse {
 }
 
+message CreateWorkerTemplateRequest {
+    // The namespace the worker template should be created in.
+    string namespace = 1;
+    // The string name of the new worker template, should be unique within the
+    // namespace.
+    string key = 2;
+    // The desired configuration of the worker template.
+    temporal.api.workertemplate.v1.WorkerTemplateSpec spec = 3;
+    // The identity of the client who initiated this request.
+    string identity = 5;
+    // A unique identifier for this create request for idempotence. Typically UUIDv4.
+    string request_id = 15;
+}
+
+message CreateWorkerTemplateResponse {
+    // The definition of the worker template that was created.
+    temporal.api.workertemplate.v1.WorkerTemplate worker_template = 1;
+}
+
+message DescribeWorkerTemplateRequest {
+    // The namespace of the worker template to describe.
+    string namespace = 1;
+    // The string name of the worker template unique within the namespace.
+    string key = 2;
+}
+
+message DescribeWorkerTemplateGenerationRequest {
+    // The namespace of the worker template to describe.
+    string namespace = 1;
+    // The string name of the worker template unique within the namespace.
+    string key = 2;
+    // The generation of desired configuration to describe.
+    int64 generation = 3;
+}
+
+message DescribeWorkerTemplateResponse {
+    // The definition of the worker template.
+    temporal.api.workertemplate.v1.WorkerTemplate worker_template = 1;
+}
+
+message UpdateWorkerTemplateRequest {
+    // The identifier for the worker template whose desired configuration is
+    // being updated. Note that the identifier type includes a generation field
+    // which should be the latest known generation (version) of the worker
+    // template desired configuration. If another caller has updated the worker
+    // template desired configuration in between the time this caller read the
+    // latest known generation and when this update was called, the update will
+    // fail with a conflict.
+    temporal.api.workertemplate.v1.WorkerTemplateIdentifier id = 1;
+    // The new desired configuration for the worker template.
+    temporal.api.workertemplate.v1.WorkerTemplateSpec worker_template = 2;
+    
+    // The identity of the client who initiated this request.
+    string identity = 5;
+    // A unique identifier for this update request for idempotence. Typically UUIDv4.
+    string request_id = 6;
+}
+
+message UpdateWorkerTemplateResponse {
+    // The definition of the updated worker template.
+    temporal.api.workertemplate.v1.WorkerTemplate worker_template = 1;
+}
+
+message ListWorkerTemplatesRequest {
+    // The namespace to list worker templates in.
+    string namespace = 1;
+    // How many to return at once.
+    int32 maximum_page_size = 2;
+    // Token to get the next page of results.
+    bytes next_page_token = 3;
+    // Query to filter worker templates.
+    string query = 4;
+}
+
+message ListWorkerTemplatesResponse {
+    repeated temporal.api.workertemplate.v1.WorkerTemplate worker_templates = 1;
+    bytes next_page_token = 2;
+}
+
 message StartWorkflowExecutionRequest {
     string namespace = 1;
     string workflow_id = 2;
